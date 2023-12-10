@@ -22,19 +22,23 @@ public class AuthController {
 	private IAuthService authService;
 	
 	@PostMapping("/register")
-	public ResponseEntity<Object> register(@Valid @RequestBody RegisterRequest request){
+	public ResponseEntity<String> register(@Valid @RequestBody RegisterRequest request){
 		AuthResponse authresponse = authService.register(request);
-		if(authresponse == null) {
-			String missatge = "Aquest nom d'usuari ja existeix, introdueix un nom diferent";
-			return new ResponseEntity<>(missatge, HttpStatus.CONFLICT);
+		if(authresponse.getErrorMessage() != null) {
+			return new ResponseEntity<>(authresponse.getErrorMessage(), HttpStatus.CONFLICT);
 		}else {
-			return new ResponseEntity<>(authresponse, HttpStatus.OK);
+			return new ResponseEntity<>(authresponse.getToken(), HttpStatus.OK);
 		}
 	}
 	
 	@PostMapping("/authenticate")
-	public ResponseEntity<AuthResponse> authenticate(@RequestBody AuthenticationRequest request){
-		return ResponseEntity.ok(authService.authenticate(request));
+	public ResponseEntity<String> authenticate(@RequestBody AuthenticationRequest request){
+		AuthResponse authResponse = authService.authenticate(request);
+		if(authResponse.getErrorMessage() == null) {
+			return ResponseEntity.ok(authResponse.getToken());
+		} else {
+			return new ResponseEntity<>(authResponse.getErrorMessage(), HttpStatus.UNAUTHORIZED); 
+		}
 	}
 	
 }
